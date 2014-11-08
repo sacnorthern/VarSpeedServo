@@ -471,7 +471,7 @@ bool VarSpeedServo::attached()
   return servos[this->servoIndex].Pin.isActive ;
 }
 
-uint8_t VarSpeedServo::sequencePlay(servoSequencePoint sequenceIn[], uint8_t numPositions, bool loop, uint8_t startPos) {
+uint8_t VarSpeedServo::sequencePlay(const servoSequencePoint sequenceIn[], uint8_t numPositions, bool loop, uint8_t startPos) {
   uint8_t oldSeqPosition = this->curSeqPosition;
 
   if( this->curSequence != sequenceIn) {
@@ -483,7 +483,8 @@ uint8_t VarSpeedServo::sequencePlay(servoSequencePoint sequenceIn[], uint8_t num
 
   if (read() == sequenceIn[this->curSeqPosition].position && this->curSeqPosition != CURRENT_SEQUENCE_STOP) {
     this->curSeqPosition++;
-    
+
+ NEXT_POSITION :
     if (this->curSeqPosition >= numPositions) { // at the end of the loop
       if (loop) { // reset to the beginning of the loop
         this->curSeqPosition = 0;
@@ -496,14 +497,24 @@ uint8_t VarSpeedServo::sequencePlay(servoSequencePoint sequenceIn[], uint8_t num
   if (this->curSeqPosition != oldSeqPosition && this->curSeqPosition != CURRENT_SEQUENCE_STOP) {
     // CURRENT_SEQUENCE_STOP position means the animation has ended, and should no longer be played
     // otherwise move to the next position
-    write(sequenceIn[this->curSeqPosition].position, sequenceIn[this->curSeqPosition].speed);
+    int  pos = sequenceIn[this->curSeqPosition].position;
+    int  spd = sequenceIn[this->curSeqPosition].speed;
+
+    if( pos == 254 )
+    {
+        delay( (uint8_t)spd * 8 );
+        this->curSeqPosition++;
+        goto NEXT_POSITION;
+    }
+
+    write( pos, spd );
     //Serial.println(this->seqCurPosition);
   }
 
   return this->curSeqPosition;
 }
 
-uint8_t VarSpeedServo::sequencePlay(servoSequencePoint sequenceIn[], uint8_t numPositions) {
+uint8_t VarSpeedServo::sequencePlay(const servoSequencePoint sequenceIn[], uint8_t numPositions) {
   return sequencePlay(sequenceIn, numPositions, true, 0);
 }
 
