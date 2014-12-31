@@ -88,9 +88,10 @@ uint8_t ServoCount = 0;                                     // the total number 
 
 // sequence vars
 
-servoSequencePoint initSeq[] = {{0,100},{45,100}};
+#if defined VARSERVO_INIT_GOTO_ANGLE
+static const   servoSequencePoint initSeq[] = {{0,100},{VARSERVO_INIT_GOTO_ANGLE,100}};
+#endif
 
-//sequence_t sequences[MAX_SEQUENCE];
 
 // convenience macros
 #define SERVO_INDEX_TO_TIMER(_servo_nbr) ((timer16_Sequence_t)(_servo_nbr / SERVOS_PER_TIMER)) // returns the timer controlling this servo
@@ -301,9 +302,14 @@ VarSpeedServo::VarSpeedServo()
 {
   if( ServoCount < MAX_SERVOS) {
     this->servoIndex = ServoCount++;                    // assign a servo index to this instance
-	  servos[this->servoIndex].ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values  - 12 Aug 2009
+    servos[this->servoIndex].ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values  - 12 Aug 2009
+#if defined VARSERVO_INIT_GOTO_ANGLE
     this->curSeqPosition = 0;
     this->curSequence = initSeq;
+#else
+    this->curSeqPosition = CURRENT_SEQUENCE_STOP;
+    this->curSequence = NULL;
+#endif  /* VARSERVO_INIT_GOTO_ANGLE */
   }
   else
     this->servoIndex = INVALID_SERVO ;  // too many servos
@@ -478,13 +484,13 @@ uint8_t VarSpeedServo::sequencePlay(const servoSequencePoint sequenceIn[], uint8
     //Serial.println("newSeq");
     this->curSequence = sequenceIn;
     this->curSeqPosition = startPos;
-    oldSeqPosition = 255;
+    oldSeqPosition = CURRENT_SEQUENCE_STOP;
   }
 
   if (read() == sequenceIn[this->curSeqPosition].position && this->curSeqPosition != CURRENT_SEQUENCE_STOP) {
+ NEXT_POSITION :
     this->curSeqPosition++;
 
- NEXT_POSITION :
     if (this->curSeqPosition >= numPositions) { // at the end of the loop
       if (loop) { // reset to the beginning of the loop
         this->curSeqPosition = 0;
@@ -500,10 +506,9 @@ uint8_t VarSpeedServo::sequencePlay(const servoSequencePoint sequenceIn[], uint8
     int  pos = sequenceIn[this->curSeqPosition].position;
     int  spd = sequenceIn[this->curSeqPosition].speed;
 
-    if( pos == 254 )
+    if( pos == _POS_PAUSE )
     {
-        delay( (uint8_t)spd * 8 );
-        this->curSeqPosition++;
+        delay( spd << 3 );
         goto NEXT_POSITION;
     }
 
@@ -516,6 +521,13 @@ uint8_t VarSpeedServo::sequencePlay(const servoSequencePoint sequenceIn[], uint8
 
 uint8_t VarSpeedServo::sequencePlay(const servoSequencePoint sequenceIn[], uint8_t numPositions) {
   return sequencePlay(sequenceIn, numPositions, true, 0);
+}
+
+//  Returns true when sequence not running, either none or sequence done.
+//  If looping, then never true.
+bool VarSpeedServo::isSequenceComplete() const
+{
+    return (this->curSeqPosition == CURRENT_SEQUENCE_STOP);
 }
 
 void VarSpeedServo::sequenceStop() {

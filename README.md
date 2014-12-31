@@ -4,12 +4,14 @@ VarSpeedServo.h
 The VarSpeedServo.h Arduino library allows the use of up to 8 servos moving asynchronously (because it uses interrupts). In addition, you can set the speed of a move, optionally wait (block) until the servo move is complete, and create sequences of moves that run asynchronously.
 
 This code is an adaptation of the standard Arduino Servo.h library, which was first adapted by Korman and posted on the [Arduino forum](http://forum.arduino.cc/index.php?topic=61586.0) to add the speed capability. Philip van Allen updated it for Arduino 1.0 + and added the ability to to wait for the move to complete.
+Brian Witt added pausing within a sequence and made the sequence array a `const` parameter.
 
 * Supports up to 8 servos
 * Allows simultaneous, asynchronous movement of all servos
 * The speed of a move can be set
 * The write() function initiates a move and can optionally wait for completion of the move before returning
 * A servo can be sent a sequence of moves (where each move has a position and speed)
+* The sequence can include short pauses (up to 2 seconds)
 
 Sample Code
 ----------------------------
@@ -32,12 +34,14 @@ void loop() {
 
 Additional examples are included in the distribution and are available in the Arduino Examples section.
 
-If you also include <Firmata.h>, make it after `#include <VarSpeedServo.h>` to avoid a compiler error.
+If you also include <Firmata.h>, make it *after* `#include <VarSpeedServo.h>` to avoid a compiler error.
 
 Class methods
 ================
 
-A servo is activated by creating an instance of the Servo class passing the desired pin to the attach() method. The servos are pulsed in the background using the value most recently written using the write() method
+A servo is activated by creating an instance of the VarSpeedServo class
+passing the desired pin to the attach() method.
+The servos are pulsed in the background using the value most recently written using the write() method
  
 VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. Methods:
 
@@ -62,6 +66,7 @@ VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. M
 	sequencePlay(sequence, sequencePositions); // play a looping sequence starting at position 0
 	sequencePlay(sequence, sequencePositions, loop, startPosition); // play sequence with number of positions, loop if true, start at position
 	sequenceStop(); // stop sequence at current position
+	isSequenceComplete(); // true when not playing sequence
 
 The `sequencePlay()` methods must be called continuously to effect servo motion.
 
@@ -70,6 +75,8 @@ Installation
 
 1. Download the .zip file from the releases section of GitHub
 2. In Arduino, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
-2. This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
-2. You can also unzip the file, and install it in the above libraries folder manually
-2. See [arduino.cc/en/Guide/Libraries](http://arduino.cc/en/Guide/Libraries) for more info on libraries
+3. This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
+
+You can also unzip the file, and install it in the above libraries folder manually.
+See [arduino.cc/en/Guide/Libraries](http://arduino.cc/en/Guide/Libraries) for more info on libraries.
+

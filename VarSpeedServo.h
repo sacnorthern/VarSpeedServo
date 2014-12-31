@@ -73,6 +73,9 @@
 #ifndef VarSpeedServo_h
 #define VarSpeedServo_h
 
+/*  Define to have servo preset to angle when instance created.  Leave undef start wherever... */
+#define  VARSERVO_INIT_GOTO_ANGLE   90
+
 #include <inttypes.h>
 
 /*
@@ -144,8 +147,12 @@ typedef struct {
 } servoSequencePoint;
 
 //  Create a tiny pause in the animation.  Currently blocks inside sequencePlay().
+//  Use as element in servoSequencePoint array.
+//  Pause time is from 8 to 2047 milliseconds.  You'll get compiler warning if too long.
 //  BWitt, Nov 2014.
 #define SSP_PAUSE(_millis)    { 254, (_millis)/8 }
+#define _POS_PAUSE	254
+
 
 class VarSpeedServo
 {
@@ -170,6 +177,7 @@ public:
 
   uint8_t sequencePlay(const servoSequencePoint sequenceIn[], uint8_t numPositions, bool loop, uint8_t startPos);
   uint8_t sequencePlay(const servoSequencePoint sequenceIn[], uint8_t numPositions); // play a looping sequence starting at position 0
+  bool isSequenceComplete() const;	// true if not performing sequence, ie position is stable.
   void sequenceStop(); // stop movement
 
 private:
