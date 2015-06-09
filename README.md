@@ -34,20 +34,20 @@ void loop() {
 
 Additional examples are included in the distribution and are available in the Arduino Examples section.
 
-If you also include <Firmata.h>, make it *after* `#include <VarSpeedServo.h>` to avoid a compiler error.
+If you also `#include <Firmata.h>`,
+make it *after* `#include <VarSpeedServo.h>` to avoid a compiler error.
 
 Class methods
 ================
 
-A servo is activated by creating an instance of the VarSpeedServo class
+A servo is activated by creating an instance of the `VarSpeedServo` class
 passing the desired pin to the attach() method.
 The servos are pulsed in the background using the value most recently written using the write() method
  
-VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. Methods:
+VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. Public methods:
 
 	attach(pin )  - Attaches a servo motor to an i/o pin.
-	attach(pin, min, max  ) - Attaches to a pin setting min and max values in microseconds
-	default min is 544, max is 2400  
+	attach(pin, min, max) - Attaches to a pin setting min and max values in microseconds.  Default min is 544, max is 2400.
 
 	write(value)     - Sets the servo angle in degrees.  (invalid angle that is valid as pulse in microseconds is treated as microseconds)
 	write(value, speed) - speed varies the speed of the move to new position 0=full speed, 1-255 slower to faster
@@ -74,7 +74,7 @@ Installation
 =============
 
 1. Download the .zip file from the releases section of GitHub
-2. In Arduino, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
+2. In Arduino IDE, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
 3. This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
 
 You can also unzip the file, and install it in the above libraries folder manually.
