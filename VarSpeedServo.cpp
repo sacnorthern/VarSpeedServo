@@ -101,6 +101,7 @@ static const   servoSequencePoint initSeq[] = {{0,100},{VARSERVO_INIT_GOTO_ANGLE
 
 #define SERVO_MIN() (MIN_PULSE_WIDTH - this->min * 4)  // minimum value in uS for this servo
 #define SERVO_MAX() (MAX_PULSE_WIDTH - this->max * 4)  // maximum value in uS for this servo
+#define SERVO_ANGLE() (this->maxAngle)  // maximum angle for this servo
 
 /************ static functions common to all instances ***********************/
 
@@ -325,7 +326,7 @@ uint8_t VarSpeedServo::attach(int pin)
   return this->attach(pin, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
 }
 
-uint8_t VarSpeedServo::attach(int pin, int min, int max)
+uint8_t VarSpeedServo::attach(int pin, int min, int max, int maxAngle)
 {
   if(this->servoIndex < MAX_SERVOS ) {
     pinMode( pin, OUTPUT) ;                                   // set servo pin to output
@@ -333,6 +334,7 @@ uint8_t VarSpeedServo::attach(int pin, int min, int max)
     // todo min/max check: abs(min - MIN_PULSE_WIDTH) /4 < 128
     this->min  = (MIN_PULSE_WIDTH - min)/4; //resolution of min/max is 4 uS
     this->max  = (MAX_PULSE_WIDTH - max)/4;
+    this->maxAngle = maxAngle;
     // initialize the timer if it has not already been initialized
     timer16_Sequence_t timer = SERVO_INDEX_TO_TIMER(servoIndex);
     if(isTimerActive(timer) == false)
@@ -356,8 +358,8 @@ void VarSpeedServo::write(int value)
   if(value < MIN_PULSE_WIDTH)
   {  // treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
     // updated to use constrain() instead of if(), pva
-    value = constrain(value, 0, 180);
-    value = map(value, 0, 180, SERVO_MIN(),  SERVO_MAX());
+    value = constrain(value, 0, SERVO_ANGLE());
+    value = map(value, 0, SERVO_ANGLE(), SERVO_MIN(),  SERVO_MAX());      
   }
   this->writeMicroseconds(value);
 }
@@ -409,8 +411,8 @@ void VarSpeedServo::write(int value, uint8_t speed) {
 		if (value < MIN_PULSE_WIDTH) {
 			// treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
       		// updated to use constrain instead of if, pva
-      		value = constrain(value, 0, 180);
-      		value = map(value, 0, 180, SERVO_MIN(),  SERVO_MAX());
+      		value = constrain(value, 0, SERVO_ANGLE());
+      		value = map(value, 0, SERVO_ANGLE(), SERVO_MIN(),  SERVO_MAX());    
 		}
 		// calculate and store the values for the given channel
 		byte channel = this->servoIndex;
@@ -463,7 +465,7 @@ void VarSpeedServo::slowmove(int value, uint8_t speed) {
 
 int VarSpeedServo::read() // return the value as degrees
 {
-  return  map( this->readMicroseconds()+1, SERVO_MIN(), SERVO_MAX(), 0, 180);
+  return  map( this->readMicroseconds()+1, SERVO_MIN(), SERVO_MAX(), 0, SERVO_ANGLE());     
 }
 
 int VarSpeedServo::readMicroseconds()
@@ -544,7 +546,7 @@ void VarSpeedServo::sequenceStop() {
 	To do
 int VarSpeedServo::targetPosition() {
 	byte channel = this->servoIndex;
-	return map( servos[channel].target+1, SERVO_MIN(), SERVO_MAX(), 0, 180);
+	return map( servos[channel].target+1, SERVO_MIN(), SERVO_MAX(), 0, SERVO_ANGLE());
 }
 
 int VarSpeedServo::targetPositionMicroseconds() {
